@@ -5,6 +5,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import java.time.Duration;
+import java.util.HashMap;
 
 public class DriverFactory {
 
@@ -15,6 +16,14 @@ public class DriverFactory {
             WebDriverManager.chromedriver().setup();
 
             ChromeOptions options = new ChromeOptions();
+
+            // CONFIGURACIÓN DE IDIOMA - FORZAR ESPAÑOL
+            HashMap<String, Object> prefs = new HashMap<>();
+            prefs.put("intl.accept_languages", "es,es-ES,es-MX,es-AR");
+
+            options.setExperimentalOption("prefs", prefs);
+            options.addArguments("--lang=es");
+            options.addArguments("--accept-lang=es-ES");
 
             // Detectar entorno CI
             boolean isCI = "CI".equals(System.getenv("RUN_ENV"));
@@ -34,7 +43,7 @@ public class DriverFactory {
 
                 // User agent realista
                 options.addArguments(
-                        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36;lang=es"
                 );
 
                 System.out.println("🔧 Ejecutando en modo CI (GitHub Actions)");
