@@ -51,43 +51,38 @@ jobs:
           RUN_ENV: "CI"
 
       # =========================
-      #      INSTALL ALLURE
+      #   INSTALL ALLURE
       # =========================
-      - name: Install Allure CLI
+      - name: Install Allure CLI (manual)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          wget https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.zip
-          unzip allure-2.27.0.zip -d /opt/allure
-          sudo ln -s /opt/allure/allure-2.27.0/bin/allure /usr/bin/allure
+          wget https://github.com/allure-framework/allure2/releases/latest/download/allure-2.29.0.tgz
+          tar -zxvf allure-2.29.0.tgz
+          sudo mv allure-2.29.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
 
       - name: Generate Allure Report
         if: always()
         run: allure generate build/allure-results -o allure-report --clean
 
-      - name: Upload Allure Report
+      - name: Upload Allure Report (HTML)
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: allure-report
           path: allure-report
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Download Allure Report Artifact
-        uses: actions/download-artifact@v4
+      - name: Upload Allure Raw Results
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: allure-report
-          path: allure-report
+          name: allure-results
+          path: build/allure-results
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          name: test-reports
+          path: |
+            build/reports/tests/test
+            build/reports/cucumber
