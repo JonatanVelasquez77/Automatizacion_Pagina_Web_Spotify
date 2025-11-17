@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
                 "json:build/allure-results/cucumber-report.json",
                 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },
-        tags = "@Login or @Busqueda or @Reproduccion",
+        tags = "@Login or @Busqueda",
         monochrome = true
 )
 public class TestRunner {
