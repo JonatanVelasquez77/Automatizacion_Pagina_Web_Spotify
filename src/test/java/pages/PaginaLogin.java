@@ -10,9 +10,9 @@ public class PaginaLogin extends PaginaBase {
 
     private By campoEmail = By.id("username");
     private By campoPassword = By.id("password");
-    private By btnLogin = By.cssSelector("[data-testid='login-button']");
+    private By btnLogin = By.xpath("//button[contains(text(),'Continuar') or contains(text(),'Continue') or @type='submit']");
     private By mensajeError = By.xpath("//span[contains(text(),'Nombre de usuario o contraseña incorrectos.')]");
-    private By btnIngContrasena = By.xpath("//button[contains(text(),'Iniciar sesión con contraseña')]");
+    private By btnIngContrasena = By.xpath("//button[@type='button']");
     private By btnReproductorWeb = By.xpath("//*[contains(@data-testid,'web-player-link')]");
 
     public void abrirPagina() {
