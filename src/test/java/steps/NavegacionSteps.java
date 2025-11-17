@@ -16,6 +16,7 @@ public class NavegacionSteps {
     private PaginaFavoritos favoritos = new PaginaFavoritos();
     private PaginaPlaylist playlist = new PaginaPlaylist();
 
+    // BUSQUEDA DE ARTISTAS
     @Given("Estoy en la pagina principal de Spotify Web")
     public void abrirSpotify() {
         principal.openPage();
@@ -82,13 +83,14 @@ public class NavegacionSteps {
     // REPRODUCIR CANCION
     @Given("que estoy en la página principal de Spotify")
     public void paginaPrincipal() {
-        login.abrirPagina();
-        login.ingresarCorreo(Config.getmyEmail());
-        login.hacerLogin();
-        login.ingresarSoloContrasena();
-        login.ingresarClave(Config.getmyPassword());
-        login.hacerLogin();
-        login.abrirReproductorWeb();
+//        login.abrirPagina();
+//        login.ingresarCorreo(Config.getmyEmail());
+//        login.hacerLogin();
+//        login.ingresarSoloContrasena();
+//        login.ingresarClave(Config.getmyPassword());
+//        login.hacerLogin();
+//        login.abrirReproductorWeb();
+        principal.openPage();
     }
 
     @When("busco la canción {string}")

@@ -34,14 +34,14 @@ public class PaginaFavoritos extends PaginaBase{
 
     public boolean verificarCancionEnLista(String nombreCancion) {
         try {
-            // 1. Ir a la lista de "Tus me gusta"
+            // Ir a la lista de "Tus me gusta"
             wait.until(ExpectedConditions.elementToBeClickable(playlistFavoritos));
             click(playlistFavoritos);
 
-            // Esperar a que cargue la lista
+            // Espera 3 seg
             Thread.sleep(3000);
 
-            // 2. Buscar la canción con diferentes patrones
+            // Buscar la canción con diferentes patrones
             List<WebElement> canciones = driver.findElements(
                     By.xpath("//div[contains(@class, 'track-name')]//span[contains(text(), '" + nombreCancion + "')] | " +
                             "//a[contains(@data-testid, 'track')]//div[contains(text(), '" + nombreCancion + "')] | " +

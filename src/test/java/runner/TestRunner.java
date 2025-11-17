@@ -11,10 +11,10 @@ import org.junit.runner.RunWith;
         plugin = {
                 "pretty",
                 "html:build/reports/cucumber/cucumber-report.html",
-                "json:build/allure-results/results.json",
+                "json:build/allure-results/cucumber-report.json",
                 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },
-        tags = "@Login",
+        tags = "@Login or @Busqueda or @Reproduccion",
         monochrome = true
 )
 public class TestRunner {
