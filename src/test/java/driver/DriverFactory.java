@@ -50,6 +50,12 @@ public class DriverFactory {
                         "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                                 + "(KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
                 );
+                // Forzar usar el Chrome real del runner
+                String chromeBinary = System.getenv("CHROME_BINARY");
+                if (chromeBinary != null && !chromeBinary.isEmpty()) {
+                    System.out.println("Usando chrome binary: " + chromeBinary);
+                    options.setBinary(chromeBinary);
+                }
 
             } else {
                 System.out.println(" Ejecutando en modo LOCAL");
