@@ -14,18 +14,16 @@ dependencies {
     implementation 'org.seleniumhq.selenium:selenium-java:4.38.0'
     implementation 'io.github.bonigarcia:webdrivermanager:6.3.3'
 
-    // Cucumber
+    // Cucumber 7
     implementation 'io.cucumber:cucumber-java:7.31.0'
-    testImplementation 'io.cucumber:cucumber-junit:7.31.0'
+    testImplementation 'io.cucumber:cucumber-junit:7.31.0'  // Runner JUnit4
 
-    // JUnit 4 (necesario para Cucumber Runner)
+    // JUnit 4
     testImplementation 'junit:junit:4.13.2'
 
-    // Allure para Cucumber 7
-    testImplementation 'io.qameta.allure:allure-cucumber7-jvm:2.27.0'
-
-    // Allure JUnit4 (muy importante)
-    testImplementation 'io.qameta.allure:allure-junit4:2.27.0'
+    // ALLURE para Cucumber + JUnit4
+    testImplementation 'io.qameta.allure:allure-cucumber7-jvm:2.24.0'
+    testImplementation 'io.qameta.allure:allure-junit4:2.24.0'
 
     // Assertions
     testImplementation 'org.assertj:assertj-core:3.24.2'
@@ -39,6 +37,10 @@ test {
     }*/
     useJUnit()
     //systemProperty "cucumber.options", System.getProperty("cucumber.options", "")
+
+    // DIRECTORIO DONDE SE GUARDAN LOS JSON DE ALLURE
+    systemProperty "allure.results.directory", "build/allure-results"
+
     testLogging {events("passed", "skipped", "failed")}
     //systemProperties System.getProperties();
 }
