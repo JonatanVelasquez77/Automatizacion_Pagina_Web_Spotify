@@ -8,7 +8,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-
+    env:
+      RUN_ENV: CI
     steps:
 
       # -----------------------------
@@ -55,8 +56,25 @@ jobs:
           echo "Installed Chrome version: $CHROME_VERSION"
 
           echo "CHROME_BINARY=/usr/bin/google-chrome" >> $GITHUB_ENV
-      
 
+      - name: Install matching ChromeDriver
+        run: |
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+          echo "Chrome: $CHROME_VERSION"
+
+          CHROME_DRIVER_VERSION=$(echo $CHROME_VERSION | cut -d'.' -f1)
+          echo "Driver Major: $CHROME_DRIVER_VERSION"
+
+          wget -q "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_DRIVER_VERSION}" -O latest.txt
+          DRIVER_VERSION=$(cat latest.txt)
+
+          wget -q "https://chromedriver.storage.googleapis.com/${DRIVER_VERSION}/chromedriver_linux64.zip" -O chromedriver.zip
+          unzip chromedriver.zip
+          sudo mv chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+
+          echo "CHROME_BINARY=/usr/bin/google-chrome" >> $GITHUB_ENV
+          echo "CHROMEDRIVER_PATH=/usr/local/bin/chromedriver" >> $GITHUB_ENV
       # -----------------------------
       # EJECUTAR TESTS
       # -----------------------------

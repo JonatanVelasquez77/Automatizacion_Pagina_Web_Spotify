@@ -1,6 +1,5 @@
 package driver;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -15,7 +14,18 @@ public class DriverFactory {
 
         if (DRIVER.get() == null) {
 
-            WebDriverManager.chromedriver().setup();
+            // → Inyectar rutas desde GitHub Actions
+            String chromeBinary = System.getenv("CHROME_BINARY");
+            if (chromeBinary != null) {
+                System.setProperty("webdriver.chrome.bin", chromeBinary);
+                System.out.println("🔧 Chrome binary: " + chromeBinary);
+            }
+
+            String chromeDriverPath = System.getenv("CHROMEDRIVER_PATH");
+            if (chromeDriverPath != null) {
+                System.setProperty("webdriver.chrome.driver", chromeDriverPath);
+                System.out.println("🔧 ChromeDriver: " + chromeDriverPath);
+            }
 
             ChromeOptions options = new ChromeOptions();
 
@@ -24,38 +34,22 @@ public class DriverFactory {
             if (isCI) {
                 System.out.println("🔧 Ejecutando en CI (GitHub Actions)");
 
-                // Headless pero con ventana simulada
                 options.addArguments("--headless=new");
                 options.addArguments("--window-size=1920,1080");
 
-                // Evitar detección de automatización
-                options.addArguments("--disable-blink-features=AutomationControlled");
-                options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
-                options.setExperimentalOption("useAutomationExtension", false);
-
-                // Optimización Linux
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
                 options.addArguments("--disable-gpu");
                 options.addArguments("--disable-software-rasterizer");
 
-                // Evitar errores gráficos
-                options.addArguments("--disable-features=VizDisplayCompositor");
+                options.addArguments("--disable-blink-features=AutomationControlled");
+                options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+                options.setExperimentalOption("useAutomationExtension", false);
 
-                // Lenguaje realista
+                // MUY IMPORTANTE PARA GITHUB
+                options.addArguments("--remote-allow-origins=*");
+
                 options.addArguments("--lang=es-ES");
-
-                // User agent realista (Chrome 142, que es el que usa GitHub Actions)
-                options.addArguments(
-                        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                                + "(KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
-                );
-                // Forzar usar el Chrome real del runner
-                String chromeBinary = System.getenv("CHROME_BINARY");
-                if (chromeBinary != null && !chromeBinary.isEmpty()) {
-                    System.out.println("Usando chrome binary: " + chromeBinary);
-                    options.setBinary(chromeBinary);
-                }
 
             } else {
                 System.out.println(" Ejecutando en modo LOCAL");
@@ -67,14 +61,8 @@ public class DriverFactory {
 
             WebDriver driver = new ChromeDriver(options);
 
-            if (isCI) {
-                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
-                driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(40));
-                driver.manage().timeouts().scriptTimeout(Duration.ofSeconds(30));
-            } else {
-                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-                driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
-            }
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(isCI ? 20 : 10));
+            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(isCI ? 40 : 30));
 
             DRIVER.set(driver);
         }
