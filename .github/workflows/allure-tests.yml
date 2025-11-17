@@ -60,88 +60,28 @@ jobs:
           echo "Listado build/allure-results:"
           ls -la build/allure-results || true
 
+            # =========================
+      #   INSTALAR ALLURE CLI
       # =========================
-      #   INSTALAR ALLURE (ROBUSTO)
-      # =========================
-      - name: Install Allure CLI (robust)
+      - name: Install Allure CLI
         run: |
-          set -euo pipefail
-
-          echo "Instalando dependencias básicas..."
           sudo apt-get update -y
-          sudo apt-get install -y wget tar unzip || true
-
-          # Descargar una versión concreta y estable. Ajusta la versión si quieres otra.
-          ALLURE_VERSION="2.29.0"
-          ALLURE_ARCHIVE="allure-${ALLURE_VERSION}.tgz"
-          ALLURE_URL="https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/${ALLURE_ARCHIVE}"
-
-          echo "Descargando Allure desde: $ALLURE_URL"
-          wget -q -O "$ALLURE_ARCHIVE" "$ALLURE_URL"
-
-          echo "Extrayendo..."
-          tar -xzf "$ALLURE_ARCHIVE"
-
-          # El directorio extraído suele llamarse allure-<version>
-          EXTRACTED_DIR="allure-${ALLURE_VERSION}"
-          if [ ! -d "$EXTRACTED_DIR" ]; then
-            echo "ERROR: no se encontró el directorio extraído $EXTRACTED_DIR"
-            ls -la || true
-            exit 1
-          fi
-
-          echo "Moviendo a /opt/allure..."
-          sudo rm -rf /opt/allure || true
-          sudo mv "$EXTRACTED_DIR" /opt/allure
-
-          echo "Asegurando permisos en binarios..."
-          sudo chmod -R a+rX /opt/allure
-          sudo chmod +x /opt/allure/bin/allure || true
-
-          echo "Creando link en /usr/local/bin para que esté en PATH"
-          sudo ln -sf /opt/allure/bin/allure /usr/local/bin/allure
-
-          echo "Comprobando versión de Allure..."
-          /usr/local/bin/allure --version || /opt/allure/bin/allure --version || true
+          sudo apt-get install -y allure
+          echo "Allure version:"
+          allure --version
 
       # =========================
-      #   DIAGNÓSTICO: comprobar versión y archivos
-      # =========================
-      - name: Debug - allure info and files
-        if: always()
-        run: |
-          echo "Which allure (should point to /usr/local/bin/allure):"
-          which allure || true
-          echo "allure --version:"
-          allure --version || /opt/allure/bin/allure --version || true
-          echo "Listado /opt/allure:"
-          ls -la /opt/allure || true
-          echo "Listado allure binary:"
-          ls -la /opt/allure/bin || true
-
-      # =========================
-      #   GENERAR REPORTE ALLURE (usar ruta absoluta si es necesario)
+      #   GENERAR REPORTE ALLURE
       # =========================
       - name: Generate Allure Report
         if: always()
         run: |
-          set -euo pipefail
-          # Si no hay resultados, salimos con mensaje claro
-          if [ ! -d "build/allure-results" ] || [ -z "$(ls -A build/allure-results 2>/dev/null)" ]; then
-            echo "ERROR: build/allure-results no existe o está vacío. No hay datos para generar Allure."
-            ls -la build || true
-            ls -la build/allure-results || true
-            exit 0  # no queremos fallar el job por esto; ajusta a 'exit 1' si prefieres marcarlo como fallo
-          fi
+          echo "Contenido de build/allure-results:"
+          ls -la build/allure-results || true
 
-          # Preferir el comando global, si no usar ruta absoluta
-          if command -v allure >/dev/null 2>&1; then
-            allure generate build/allure-results -o allure-report --clean
-          else
-            /opt/allure/bin/allure generate build/allure-results -o allure-report --clean
-          fi
+          allure generate build/allure-results -o allure-report --clean
 
-      - name: Upload Allure Report (HTML)
+      - name: Upload Allure Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
