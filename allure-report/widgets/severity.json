@@ -1,0 +1,1 @@
+[{"uid":"f510dfb1dfac46e9","name":"Login con credenciales inválidas","time":{"start":1763420749186,"stop":1763420749999,"duration":813},"status":"broken","severity":"normal"},{"uid":"69155d9a00ef1b3","name":"Busqueda de canciones/artistas","time":{"start":1763420729213,"stop":1763420749133,"duration":19920},"status":"passed","severity":"normal"}]
