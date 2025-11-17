@@ -29,8 +29,8 @@ public class NavegacionSteps {
 
     @Then("deberia visualizar resultados relacionados con {string}")
     public void validarResultados(String termino) {
-        boolean presente = resultados.isArtistPresent(termino);
-        assertTrue("Artista" + termino , presente);
+        boolean encontrado = PaginaResultados.isArtistPresent(termino);
+        assertTrue("El artista '" + termino + "' no aparece en los resultados", encontrado);
     }
 
     // LOGIN INVALIDO

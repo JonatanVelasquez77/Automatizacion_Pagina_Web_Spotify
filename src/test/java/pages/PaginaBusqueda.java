@@ -13,12 +13,11 @@ public class PaginaBusqueda extends PaginaBase{
     private WebDriver driver = DriverFactory.getDriver();
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-    private final String searchInput = "//input[contains(@data-testid,'search-input')]";
-    private By primerResultado = By.xpath("//button[@aria-label='Reproducir Shape of You de Ed Sheeran']");
+    private final By searchInput = By.xpath("//input[contains(@data-testid,'search-input')]");
+    private final By primerResultado = By.xpath("//button[@aria-label='Reproducir Shape of You de Ed Sheeran']");
 
     public void search(String term) {
-        write(By.id(searchInput), term);
-        find(By.id(searchInput)).sendKeys(Keys.ENTER);
+        write(searchInput, term);
     }
 
     public void seleccionarPrimerResultado() {

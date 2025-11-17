@@ -18,12 +18,11 @@ public class PaginaResultados extends PaginaBase{
         return findAll(By.id(resultItems)).size();
     }
 
-    public boolean isArtistPresent(String artistName) {
+    public static boolean isArtistPresent(String artistName) {
         try {
-            String xpath = String.format("//a[contains(@href,'/artist')][.//span[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'%s')]]",
+            String xpath = String.format("//*[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '%s')]",
                     artistName.toLowerCase());
-            WebElement el = find(By.id(xpath));
-            return el != null;
+            return !driver.findElements(By.xpath(xpath)).isEmpty();
         } catch (Exception e) {
             return false;
         }

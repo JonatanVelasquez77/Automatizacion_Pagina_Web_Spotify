@@ -13,7 +13,7 @@ import java.util.List;
 
 public class PaginaBase {
 
-    protected WebDriver driver;
+    protected static WebDriver driver;
     protected WebDriverWait wait;
     protected WebDriverWait longWait;
 
