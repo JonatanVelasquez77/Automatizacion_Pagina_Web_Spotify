@@ -46,20 +46,32 @@ jobs:
       # -----------------------------
       # INSTALAR CHROMEDRIVER COMPATIBLE
       # -----------------------------
-      - name: Install ChromeDriver
+      - name: Install Chrome & ChromeDriver (Chrome for Testing)
         run: |
-          CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
-          echo "Installed Chrome version: $CHROME_VERSION"
-
-          LKG=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-            | grep -oP '(?<="stable": ")[^"]+')
-          echo "Using ChromeDriver version: $LKG"
-
-          wget https://storage.googleapis.com/chrome-for-testing-public/$LKG/linux64/chromedriver-linux64.zip
+          sudo apt-get update
+          sudo apt-get install -y wget jq unzip
+          
+          # Obtener la versión estable LKG de Chrome for Testing
+          CFT=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
+            | jq -r '.channels.Stable.version')
+          
+          echo "Using Chrome for Testing version: $CFT"
+          
+          # Descargar Chrome para Testing
+          wget https://storage.googleapis.com/chrome-for-testing-public/$CFT/linux64/chrome-linux64.zip
+          unzip chrome-linux64.zip
+          sudo mv chrome-linux64 /opt/chrome
+          
+          # Descargar Chromedriver para Testing
+          wget https://storage.googleapis.com/chrome-for-testing-public/$CFT/linux64/chromedriver-linux64.zip
           unzip chromedriver-linux64.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
           sudo chmod +x /usr/local/bin/chromedriver
-
+          
+          # Crear symlink para chrome
+          sudo ln -s /opt/chrome/chrome /usr/bin/google-chrome
+          
+          google-chrome --version
           chromedriver --version
 
       # -----------------------------
