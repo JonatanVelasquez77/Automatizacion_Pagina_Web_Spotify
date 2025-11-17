@@ -12,16 +12,9 @@ jobs:
       RUN_ENV: CI
 
     steps:
-
-      # -----------------------------
-      # CHECKOUT
-      # -----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -----------------------------
-      # JAVA
-      # -----------------------------
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -31,83 +24,110 @@ jobs:
       - name: Grant execute permissions
         run: chmod +x ./gradlew
 
-      # -----------------------------
-      # INSTALAR GOOGLE CHROME
-      # -----------------------------
       - name: Install Google Chrome
         run: |
           sudo apt-get update -y
           sudo apt-get install -y google-chrome-stable
           google-chrome --version
-
           echo "CHROME_BINARY=/usr/bin/google-chrome" >> $GITHUB_ENV
-          echo "CHROMEDRIVER_PATH=/usr/bin/chromedriver" >> $GITHUB_ENV
 
-      # -----------------------------
-      # EJECUTAR TESTS
-      # -----------------------------
-      - name: Run tests
-        run: ./gradlew clean test --continue || true
-
-      # -----------------------------
-      # INSTALAR ALLURE
-      # -----------------------------
-      - name: Install Allure CLI
+      - name: Install matching ChromeDriver (Chrome for Testing)
         run: |
+          # Usamos la versión exacta de Chrome para descargar chromedriver provisto por Google
+          CHROME_VERSION=$(google-chrome --version | grep -oE "[0-9]+(\.[0-9]+)*")
+          echo "Chrome version: $CHROME_VERSION"
+          DRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip"
+          echo "Downloading driver from: $DRIVER_URL"
+          wget -q -O driver.zip "$DRIVER_URL"
+          unzip -q driver.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/bin/chromedriver
+          sudo chmod +x /usr/bin/chromedriver
+          echo "CHROMEDRIVER_PATH=/usr/bin/chromedriver" >> $GITHUB_ENV
+          which chromedriver || true
+          chromedriver --version || true
+
+      - name: Run tests
+        run: ./gradlew clean test
+        continue-on-error: true
+
+      # === INSTALAR ALLURE CLI (método robusto y compatible) ===
+      - name: Install Allure CLI (Stable Method, fixed path)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y unzip wget
+
           ALLURE_VERSION=2.24.0
-          echo "Installing Allure $ALLURE_VERSION"
-          
-          wget "https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/$ALLURE_VERSION/allure-commandline-$ALLURE_VERSION.zip" -O allure.zip
-          
-          unzip allure.zip -d allure-cli
-          sudo mv allure-cli/allure-commandline-$ALLURE_VERSION /opt/allure
-          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
-          
-          allure --version
+          echo "Installing Allure $ALLURE_VERSION from Maven Central"
+          wget -q "https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/${ALLURE_VERSION}/allure-commandline-${ALLURE_VERSION}.zip" -O allure.zip
 
-      # -----------------------------
-      # GENERAR ALLURE REPORT
-      # -----------------------------
+          # Descomprimir y mover con el nombre real que trae el ZIP
+          unzip -q allure.zip -d allure-cli
+
+          # Detectar el directorio interno (puede ser 'allure-2.24.0' o 'allure-commandline-2.24.0')
+          DIR=$(ls -1d allure-cli/* | head -n1)
+          echo "Found unpacked dir: $DIR"
+
+          # Mover al directorio destino /opt/allure (sobrescribe si ya existe)
+          sudo rm -rf /opt/allure || true
+          sudo mv "$DIR" /opt/allure
+
+          # Crear symlink forzado para evitar fallos si ya existe
+          sudo ln -sf /opt/allure/bin/allure /usr/bin/allure
+
+          # Verificar instalación
+          /usr/bin/allure --version
+
+      - name: Show allure-results (debug)
+        run: |
+          echo "Contenido de build/allure-results:"
+          ls -la build/allure-results || true
+
       - name: Generate Allure Report
-        run: allure generate build/allure-results -o allure-report --clean
-
-      # -----------------------------
-      # SUBIR ARTIFACTOS ALLURE
-      # -----------------------------
-      - name: Upload Allure Report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report
+        run: |
+          if [ -d "build/allure-results" ] && [ "$(ls -A build/allure-results)" ]; then
+            /usr/bin/allure generate build/allure-results -o allure-report --clean
+            echo "Allure report generated"
+            ls -la allure-report || true
+          else
+            echo "No allure results found - skipping report generation"
+            ls -la build || true
+            exit 0
+          fi
 
       - name: Create JIRA-like report (Simulated)
         if: failure()
         run: |
           echo "Se detectó una falla. Generando ticket simulado..."
-          echo "TICKET: SPOT-AUTO-$(date +%s)" > jira-ticket.txt
-          echo "Resumen: Falla en pruebas automáticas" >> jira-ticket.txt
-          echo "Fecha: $(date)" >> jira-ticket.txt
-          cat jira-ticket.txt
+          TICKET_FILE=jira-ticket-$(date +%s).txt
+          echo "TICKET-SIMULADO: SPOT-AUTO-$(date +%s)" > $TICKET_FILE
+          echo "Resumen: Falla en pruebas automáticas" >> $TICKET_FILE
+          echo "Fecha: $(date)" >> $TICKET_FILE
+          echo "Logs: build/reports/tests/test/index.html" >> $TICKET_FILE
+          echo "" >> $TICKET_FILE
+          echo "Adjuntar Allure en el artifact 'allure-report' si existe." >> $TICKET_FILE
+          cat $TICKET_FILE
 
       - name: Upload Allure Report artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: allure-report
+          path: |
+            allure-report
+            build/allure-results
 
       - name: Upload JIRA simulated ticket (if exists)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: jira-ticket
-          path: jira-ticket.txt
+          path: '*.txt'
 
   deploy:
     needs: test
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repo
         uses: actions/checkout@v4
 
