@@ -10,8 +10,8 @@ import org.junit.runner.RunWith;
         glue = {"steps", "hooks", "pages"},
         plugin = {
                 "pretty",
-                "html:build/reports/cucumber/cucumber-report.html",
-                "json:build/allure-results/cucumber-report.json",
+//                "html:build/reports/cucumber/cucumber-report.html",
+//                "json:build/allure-results/cucumber-report.json",
                 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },
         tags = "@Login or @Busqueda",

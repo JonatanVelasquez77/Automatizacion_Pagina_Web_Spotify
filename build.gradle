@@ -38,7 +38,7 @@ test {
         events "passed", "skipped", "failed"
     }*/
     useJUnit()
-    systemProperty "cucumber.options", System.getProperty("cucumber.options", "")
+    //systemProperty "cucumber.options", System.getProperty("cucumber.options", "")
     testLogging {events("passed", "skipped", "failed")}
-    systemProperties System.getProperties();
+    //systemProperties System.getProperties();
 }
