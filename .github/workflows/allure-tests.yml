@@ -54,13 +54,13 @@ jobs:
       # -----------------------------
       - name: Install Allure CLI
         run: |
+          ALLURE_VERSION=2.24.0
+          echo "Installing Allure $ALLURE_VERSION"
           
-          LATEST=$(curl -s https://api.github.com/repos/allure-framework/allure2/releases/latest | grep browser_download_url | grep commandline | cut -d '"' -f 4)
-          
-          wget "$LATEST" -O allure.zip
+          wget "https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/$ALLURE_VERSION/allure-commandline-$ALLURE_VERSION.zip" -O allure.zip
           
           unzip allure.zip -d allure-cli
-          sudo mv allure-cli /opt/allure
+          sudo mv allure-cli/allure-commandline-$ALLURE_VERSION /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/bin/allure
           
           allure --version
