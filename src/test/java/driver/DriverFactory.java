@@ -4,6 +4,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+
 import java.time.Duration;
 
 public class DriverFactory {
@@ -11,44 +12,55 @@ public class DriverFactory {
     private static final ThreadLocal<WebDriver> DRIVER = new ThreadLocal<>();
 
     public static WebDriver getDriver() {
+
         if (DRIVER.get() == null) {
+
             WebDriverManager.chromedriver().setup();
 
             ChromeOptions options = new ChromeOptions();
 
-            // Detectar entorno CI
             boolean isCI = "CI".equals(System.getenv("RUN_ENV"));
 
             if (isCI) {
-                // CONFIGURACIÓN OPTIMIZADA PARA GITHUB ACTIONS
+                System.out.println("🔧 Ejecutando en CI (GitHub Actions)");
+
+                // Headless pero con ventana simulada
                 options.addArguments("--headless=new");
+                options.addArguments("--window-size=1920,1080");
+
+                // Evitar detección de automatización
+                options.addArguments("--disable-blink-features=AutomationControlled");
+                options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+                options.setExperimentalOption("useAutomationExtension", false);
+
+                // Optimización Linux
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
                 options.addArguments("--disable-gpu");
-                options.addArguments("--window-size=1920,1080");
-                options.addArguments("--disable-extensions");
-                options.addArguments("--remote-allow-origins=*");
-                options.addArguments("--disable-blink-features=AutomationControlled");
-                options.addArguments("--disable-features=VizDisplayCompositor");
                 options.addArguments("--disable-software-rasterizer");
 
-                // User agent realista
+                // Evitar errores gráficos
+                options.addArguments("--disable-features=VizDisplayCompositor");
+
+                // Lenguaje realista
+                options.addArguments("--lang=es-ES");
+
+                // User agent realista (Chrome 142, que es el que usa GitHub Actions)
                 options.addArguments(
-                        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                                + "(KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
                 );
 
-                System.out.println("🔧 Ejecutando en modo CI (GitHub Actions)");
             } else {
-                // CONFIGURACIÓN LOCAL
-                options.addArguments("--start-maximized");
-                options.addArguments("--remote-allow-origins=*");
-                options.addArguments("--disable-notifications");
                 System.out.println(" Ejecutando en modo LOCAL");
+
+                options.addArguments("--start-maximized");
+                options.addArguments("--disable-notifications");
+                options.addArguments("--remote-allow-origins=*");
             }
 
             WebDriver driver = new ChromeDriver(options);
 
-            // TIMEOS MÁS LARGOS PARA CI
             if (isCI) {
                 driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
                 driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(40));
@@ -60,6 +72,7 @@ public class DriverFactory {
 
             DRIVER.set(driver);
         }
+
         return DRIVER.get();
     }
 
@@ -68,9 +81,7 @@ public class DriverFactory {
         if (driver != null) {
             try {
                 driver.quit();
-            } catch (Exception e) {
-                System.out.println(" Error al cerrar driver: " + e.getMessage());
-            }
+            } catch (Exception ignored) {}
             DRIVER.remove();
         }
     }
