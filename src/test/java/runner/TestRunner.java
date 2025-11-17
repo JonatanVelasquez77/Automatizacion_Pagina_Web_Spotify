@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
         glue = {"steps", "hooks", "pages"},
         plugin = {
                 "pretty",
-                "html:target/cucumber-reports",
+                "html:build/reports/cucumber/cucumber-report.html",
                 "json:build/allure-results/results.json",
                 "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
         },

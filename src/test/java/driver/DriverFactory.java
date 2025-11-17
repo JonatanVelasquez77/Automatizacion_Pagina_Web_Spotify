@@ -4,7 +4,6 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-
 import java.time.Duration;
 
 public class DriverFactory {
@@ -12,54 +11,55 @@ public class DriverFactory {
     private static final ThreadLocal<WebDriver> DRIVER = new ThreadLocal<>();
 
     public static WebDriver getDriver() {
-
         if (DRIVER.get() == null) {
-
             WebDriverManager.chromedriver().setup();
 
             ChromeOptions options = new ChromeOptions();
 
-            // Detectar entorno
-            String env = System.getenv("RUN_ENV");
-            boolean isCI = env != null && env.equalsIgnoreCase("CI");
+            // Detectar entorno CI
+            boolean isCI = "CI".equals(System.getenv("RUN_ENV"));
 
             if (isCI) {
-                //  CONFIGURACIÓN PARA GITHUB ACTIONS
+                // CONFIGURACIÓN OPTIMIZADA PARA GITHUB ACTIONS
                 options.addArguments("--headless=new");
                 options.addArguments("--no-sandbox");
                 options.addArguments("--disable-dev-shm-usage");
                 options.addArguments("--disable-gpu");
                 options.addArguments("--window-size=1920,1080");
-                options.addArguments("--disable-blink-features=AutomationControlled");
-                options.addArguments("--disable-infobars");
                 options.addArguments("--disable-extensions");
                 options.addArguments("--remote-allow-origins=*");
+                options.addArguments("--disable-blink-features=AutomationControlled");
+                options.addArguments("--disable-features=VizDisplayCompositor");
+                options.addArguments("--disable-software-rasterizer");
+
+                // User agent realista
                 options.addArguments(
-                        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                                "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                                "Chrome/120.0.0.0 Safari/537.36"
+                        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 );
 
-                System.out.println(" Ejecutando en modo CI (GitHub Actions)");
-
+                System.out.println("🔧 Ejecutando en modo CI (GitHub Actions)");
             } else {
                 // CONFIGURACIÓN LOCAL
                 options.addArguments("--start-maximized");
                 options.addArguments("--remote-allow-origins=*");
-                options.addArguments("--disable-infobars");
                 options.addArguments("--disable-notifications");
-
-                System.out.println("Ejecutando en modo LOCAL");
+                System.out.println(" Ejecutando en modo LOCAL");
             }
 
             WebDriver driver = new ChromeDriver(options);
-            if (env != null) {
-                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
+
+            // TIMEOS MÁS LARGOS PARA CI
+            if (isCI) {
+                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
+                driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(40));
+                driver.manage().timeouts().scriptTimeout(Duration.ofSeconds(30));
+            } else {
+                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
                 driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
             }
+
             DRIVER.set(driver);
         }
-
         return DRIVER.get();
     }
 
@@ -68,7 +68,9 @@ public class DriverFactory {
         if (driver != null) {
             try {
                 driver.quit();
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                System.out.println(" Error al cerrar driver: " + e.getMessage());
+            }
             DRIVER.remove();
         }
     }

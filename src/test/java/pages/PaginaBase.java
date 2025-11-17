@@ -14,19 +14,53 @@ import java.util.List;
 public class PaginaBase {
 
     protected WebDriver driver;
-    private static WebDriverWait wait;
+    protected WebDriverWait wait;
+    protected WebDriverWait longWait;
 
     public PaginaBase() {
         this.driver = DriverFactory.getDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+        // Detectar si estamos en CI
+        boolean isCI = "CI".equals(System.getenv("RUN_ENV"));
+
+        if (isCI) {
+            this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+            this.longWait = new WebDriverWait(driver, Duration.ofSeconds(45));
+        } else {
+            this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+            this.longWait = new WebDriverWait(driver, Duration.ofSeconds(25));
+        }
     }
 
     protected void openUrl(String url) {
         driver.get(url);
+
+        // Espera adicional en CI
+        if ("CI".equals(System.getenv("RUN_ENV"))) {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     protected WebElement find(By locator) {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        } catch (Exception e) {
+            System.out.println("Elemento no encontrado: " + locator);
+            throw e;
+        }
+    }
+
+    protected WebElement findWithLongWait(By locator) {
+        try {
+            return longWait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        } catch (Exception e) {
+            System.out.println("Elemento no encontrado con long wait: " + locator);
+            throw e;
+        }
     }
 
     protected List<WebElement> findAll(By locator) {
@@ -35,7 +69,20 @@ public class PaginaBase {
     }
 
     protected void click(By locator) {
-        find(locator).click();
+        try {
+            WebElement element = findWithLongWait(locator);
+            element.click();
+
+            // Pequeña pausa después del click en CI
+            if ("CI".equals(System.getenv("RUN_ENV"))) {
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            System.out.println("Error al hacer click: " + e.getMessage());
+            throw e;
+        }
     }
 
     protected void write(By locator, String text) {
