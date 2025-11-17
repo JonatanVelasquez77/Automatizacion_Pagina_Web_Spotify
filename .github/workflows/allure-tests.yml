@@ -49,15 +49,13 @@ jobs:
       - name: Install Google Chrome
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y wget gnupg ca-certificates
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
-          | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update -y
           sudo apt-get install -y google-chrome-stable
-          google-chrome --version
-          - name: Export CHROME_BINARY env (optional, useful for DriverFactory)
-            run: echo "CHROME_BINARY=/usr/bin/google-chrome" >> $GITHUB_ENV
+
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+          echo "Installed Chrome version: $CHROME_VERSION"
+
+          echo "CHROME_BINARY=/usr/bin/google-chrome" >> $GITHUB_ENV
+      
 
       # -----------------------------
       # EJECUTAR TESTS
