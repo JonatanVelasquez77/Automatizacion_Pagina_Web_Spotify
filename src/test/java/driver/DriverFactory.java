@@ -5,6 +5,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.time.Duration;
+
 public class DriverFactory {
 
     private static final ThreadLocal<WebDriver> DRIVER = new ThreadLocal<>();
@@ -51,6 +53,10 @@ public class DriverFactory {
             }
 
             WebDriver driver = new ChromeDriver(options);
+            if (env != null) {
+                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
+                driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
+            }
             DRIVER.set(driver);
         }
 
