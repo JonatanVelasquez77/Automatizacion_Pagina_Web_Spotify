@@ -15,6 +15,8 @@ public class DriverFactory {
         if (DRIVER.get() == null) {
             WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
+            options.addArguments("--headless=new"); //Modo headless para ejecucion sin UI en CI
+            options.addArguments("--remote-allow-origins=*");// Solucionar error de conexion remota
             options.addArguments("--start-maximized");
             options.addArguments("--disable-blink-features=AutomationControlled");
             options.addArguments("--disable-infobars");
