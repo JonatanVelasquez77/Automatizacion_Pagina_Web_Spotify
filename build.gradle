@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Selenium
+    implementation 'org.seleniumhq.selenium:selenium-java:4.38.0'
+    implementation 'io.github.bonigarcia:webdrivermanager:6.3.3'
+
+    // Cucumber
+    implementation 'io.cucumber:cucumber-java:7.31.0'
+    testImplementation 'io.cucumber:cucumber-junit:7.31.0'
+
+    // JUnit 4 (necesario para Cucumber Runner)
+    testImplementation 'junit:junit:4.13.2'
+
+    // Allure para Cucumber 7
+    testImplementation 'io.qameta.allure:allure-cucumber7-jvm:2.27.0'
+
+    // Allure JUnit4 (muy importante)
+    testImplementation 'io.qameta.allure:allure-junit4:2.27.0'
+
+    // Assertions
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+}
+
+
+test {
+    /*useTestNG() // indica a Gradle que ejecute TestNG
+    testLogging {
+        events "passed", "skipped", "failed"
+    }*/
+    useJUnit()
+    systemProperty "cucumber.options", System.getProperty("cucumber.options", "")
+    testLogging {events("passed", "skipped", "failed")}
+    systemProperties System.getProperties();
+}
