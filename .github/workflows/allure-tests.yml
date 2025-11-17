@@ -13,8 +13,13 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Install Chrome
-      uses: browser-actions/setup-chrome@v1
+    - name: Install Google Chrome
+      run: |
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+
 
     - name: Set up Java
       uses: actions/setup-java@v3
