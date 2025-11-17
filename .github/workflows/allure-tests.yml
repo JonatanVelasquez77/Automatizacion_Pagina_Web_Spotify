@@ -54,8 +54,10 @@ jobs:
       # -----------------------------
       - name: Install Allure CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install -y allure
+          wget https://github.com/allure-framework/allure2/releases/latest/download/allure-commandline.zip -O allure.zip
+          unzip allure.zip -d allure-cli
+          sudo mv allure-cli /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
           allure --version
 
       # -----------------------------
