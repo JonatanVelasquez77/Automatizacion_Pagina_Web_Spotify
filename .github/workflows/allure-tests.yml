@@ -54,10 +54,15 @@ jobs:
       # -----------------------------
       - name: Install Allure CLI
         run: |
-          wget https://github.com/allure-framework/allure2/releases/latest/download/allure-commandline.zip -O allure.zip
+          
+          LATEST=$(curl -s https://api.github.com/repos/allure-framework/allure2/releases/latest | grep browser_download_url | grep commandline | cut -d '"' -f 4)
+          
+          wget "$LATEST" -O allure.zip
+          
           unzip allure.zip -d allure-cli
           sudo mv allure-cli /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/bin/allure
+          
           allure --version
 
       # -----------------------------
@@ -75,6 +80,27 @@ jobs:
           name: allure-report
           path: allure-report
 
+      - name: Create JIRA-like report (Simulated)
+        if: failure()
+        run: |
+          echo "Se detectó una falla. Generando ticket simulado..."
+          echo "TICKET: SPOT-AUTO-$(date +%s)" > jira-ticket.txt
+          echo "Resumen: Falla en pruebas automáticas" >> jira-ticket.txt
+          echo "Fecha: $(date)" >> jira-ticket.txt
+          cat jira-ticket.txt
+
+      - name: Upload Allure Report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
+      - name: Upload JIRA simulated ticket (if exists)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jira-ticket
+          path: jira-ticket.txt
 
   deploy:
     needs: test
