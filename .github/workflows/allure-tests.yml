@@ -9,40 +9,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+    - name: Install Chrome
+      uses: browser-actions/setup-chrome@v1
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Run tests
-        run: ./gradlew clean test --stacktrace
+    - name: Cache Gradle
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+        restore-keys: ${{ runner.os }}-gradle
 
-      - name: Install Allure CLI
-        run: |
-          sudo apt-add-repository ppa:qameta/allure --yes
-          sudo apt-get update
-          sudo apt-get install allure --yes
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-      - name: Generate Allure Report
-        run: allure generate build/allure-results --clean -o build/allure-report
+    - name: Run tests
+      run: ./gradlew clean test --stacktrace
 
-      - name: Upload Allure report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: build/allure-report
+    - name: Install Allure CLI
+      uses: allure-framework/setup-allure-cli@v1
+
+    - name: Generate Allure Report
+      run: allure generate build/allure-results --clean -o allure-report
+
+    - name: Upload Allure report artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: allure-report
+        path: allure-report
