@@ -1,5 +1,8 @@
 name: Run Tests and Generate Allure Report
 
+permissions:
+  contents: write
+
 on:
   push:
   pull_request:
