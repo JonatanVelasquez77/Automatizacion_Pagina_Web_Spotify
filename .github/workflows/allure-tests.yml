@@ -5,23 +5,66 @@ on:
   pull_request:
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
 
     steps:
 
+      # -----------------------------
+      # CHECKOUT
+      # -----------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # -----------------------------
+      # JAVA
+      # -----------------------------
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant execute permissions to gradlew
+      - name: Grant execute permissions
         run: chmod +x ./gradlew
 
+      # -----------------------------
+      # INSTALAR GOOGLE CHROME
+      # -----------------------------
+      - name: Install Google Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget gnupg unzip
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          google-chrome --version
+
+      # -----------------------------
+      # INSTALAR CHROMEDRIVER COMPATIBLE
+      # -----------------------------
+      - name: Install ChromeDriver
+        run: |
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+          echo "Installed Chrome version: $CHROME_VERSION"
+
+          LKG=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
+            | grep -oP '(?<="stable": ")[^"]+')
+          echo "Using ChromeDriver version: $LKG"
+
+          wget https://storage.googleapis.com/chrome-for-testing-public/$LKG/linux64/chromedriver-linux64.zip
+          unzip chromedriver-linux64.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
+
+          chromedriver --version
+
+      # -----------------------------
+      # EJECUTAR TESTS
+      # -----------------------------
       - name: Run tests
         run: ./gradlew clean test
 
@@ -32,16 +75,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y allure
-
-      - name: Confirm allure installation
-        run: allure --version
+          allure --version
 
       # -----------------------------
-      # GENERAR REPORTE
+      # GENERAR ALLURE REPORT
       # -----------------------------
       - name: Generate Allure Report
-        run: |
-          allure generate build/allure-results -o allure-report --clean
+        run: allure generate build/allure-results -o allure-report --clean
 
       # -----------------------------
       # SUBIR ARTIFACTO (v4)
@@ -58,6 +98,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout repo
         uses: actions/checkout@v4
 
