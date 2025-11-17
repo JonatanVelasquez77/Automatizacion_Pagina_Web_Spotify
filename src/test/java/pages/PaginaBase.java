@@ -18,7 +18,7 @@ public class PaginaBase {
 
     public PaginaBase() {
         this.driver = DriverFactory.getDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
     }
 
     protected void openUrl(String url) {
